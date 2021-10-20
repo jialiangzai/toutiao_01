@@ -1,6 +1,5 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
-
 // 路由懒加载
 // import Login from '../views/login/index.vue'
 
