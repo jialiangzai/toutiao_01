@@ -39,6 +39,7 @@ const Search = () => import('@/views/search/index.vue')
 const Result = () => import('@/views/search/result.vue')
 // 详情
 const Article = () => import('@/views/article/index.vue')
+const NotFound = () => import('@/views/NotFound')
 
 const routes = [
   {
@@ -108,6 +109,10 @@ const routes = [
     name: 'article',
     // 文章详情
     component: Article
+  },
+  {
+    path: '*',
+    component: NotFound
   }
 ]
 
