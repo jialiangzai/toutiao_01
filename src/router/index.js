@@ -1,5 +1,7 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
+// 导入vuex实例=>store === 页面中的this.$store store有存储本地数据
+import store from '@/store'
 // 路由懒加载
 // import Login from '../views/login/index.vue'
 
@@ -28,7 +30,6 @@ const Profile = () => import('@/views/profile/index.vue')
 // 登录
 // 按需导入 函数 在需要的时候调用
 const Login = () => import('../views/login/index.vue')
-Vue.use(VueRouter)
 // 编辑个人资料
 const User = () => import('@/views/user/edit.vue')
 // 小智
@@ -45,7 +46,7 @@ const routes = [
     path: '/',
     // 布局骨架
     component: Layout,
-    // 二级路由
+    // 二级路由 子依赖父，子渲染父也会渲染，父中要有router-view
     children: [
       {
         path: '/',
@@ -114,9 +115,38 @@ const routes = [
     component: NotFound
   }
 ]
+// 解决Vue-Router升级导致的Uncaught(in promise) navigation guard问题
+const originalPush = VueRouter.prototype.push
+VueRouter.prototype.push = function push (location, onResolve, onReject) {
+  if (onResolve || onReject) return originalPush.call(this, location, onResolve, onReject)
+  return originalPush.call(this, location).catch(err => err)
+}
+Vue.use(VueRouter)
 
 const router = new VueRouter({
   routes
+})
+// 添加路由全局前置守卫 控制'/user'开头的页面访问 如果没token就要转登录页面
+router.beforeEach((to, from, next) => {
+  /** to  对象 去哪里
+   * from  对象  来自哪里
+   * next(方法)
+   * token 存储到vuex中 做了持久化 ，不要操作本地 ，vuex能做到本地刷新还在用vuex技术
+   * 用js导入一个vuex的实例，虽然得不到vue文件但是可以拿到实例
+   * store === this.$store
+   * .startsWith('xxx') 是否是xxx开头
+   * next()也可以跳页面 ==== router.push()
+   * 把用户当前访问的没登录的页面to.path当做参数，带到登录页 没登录--去登录--登陆完---返回之前没登录访问的页面to.path
+   * 新版路由有错误代码未错 ，在Vue.(VueRouter)注册VueRouter之前加代码
+   * redirectUrk是键的名字自定义
+   * */
+  const { user } = store.state
+  // 只是判断是否有token值，没有判断token的有效期
+  if (to.path.startsWith('/user') && !user.token) {
+    next(`/login?redirectUrk=${to.path}`)
+  } else {
+    next()
+  }
 })
 
 export default router

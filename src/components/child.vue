@@ -5,7 +5,6 @@
     <div style="width: 20px">行内样式</div>
   </div>
 </template>
-
 <script>
 export default {
 
