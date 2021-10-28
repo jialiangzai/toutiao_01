@@ -1,91 +1,72 @@
 
 <template>
   <div class="container">
-    home
+    <!-- <Modal v-model="isShowModal"> -->
+    <!-- <Modal :value="isShowModal" @input="isShowModal = $event"> $event默认是形参 简写了-->
+    <!-- <h1>我是弹层内容</h1> -->
+    <!-- <div>内容2</div> -->
+    <!-- <van-button native-type="button" type="primary">确定</van-button> -->
+    <!-- </Modal> -->
+    <!-- <button @click="isShowModal = !isShowModal">控制modal是否显示</button> -->
     <!-- <button @click="setToken">login</button> -->
     <!-- 文章分类栏 -->
     <!--
       swipeable 手机端支持滑动切换页签内容
       animated 开启切换时的过场动画 开启切换标签内容时的转场动画
      -->
-    <van-tabs animated swipeable>
+    <van-tabs animated swipeable v-model="activeIndex">
       <!-- 默认插槽 -->
       <van-tab :key="item.id" v-for="item in Channel" :title="item.name">
         <!-- 可滚动内容区域 默认插槽-->
-        <div class="scroll-wrapper">
-          <!-- <van-cell :key="i" v-for="i in 20" title="单元格" value="内容">{{
-              i
-            }}</van-cell> -->
-          <van-pull-refresh
-            v-model="refreshing"
-            @refresh="onRefresh"
-            loosing-text="寒江孤影"
-            loading-text="江湖故人"
-            success-text="来活了"
-          >
-            <!-- 标签一 -->
-            <van-list
-              v-model="loading"
-              :finished="finished"
-              finished-text="没有更多了"
-              @load="onLoad"
-            >
-              <!-- 新闻列表 -->
-              <van-cell v-for="item in list" :key="item">
-                <!--一条新闻的结构-->
-                <div class="article_item">
-                  <h3 class="van-ellipsis">
-                    PullRefresh下拉刷新PullRefresh下拉刷新下拉刷新下拉刷新
-                  </h3>
-                  <div class="img_box">
-                    <!-- <van-image
-                      class="w33"
-                      fit="cover"
-                      src="https://img.yzcdn.cn/vant/cat.jpeg"
-                    /> -->
-                    <van-image
-                      class="w100"
-                      fit="cover"
-                      src="https://img.yzcdn.cn/vant/cat.jpeg"
-                    />
-                    <!-- <van-image
-                      class="w33"
-                      fit="cover"
-                      src="https://img.yzcdn.cn/vant/cat.jpeg"
-                    /> -->
-                    <!-- <van-image
-                      class="w33"
-                      fit="cover"
-                      src="https://img.yzcdn.cn/vant/cat.jpeg"
-                    /> -->
-                  </div>
-                  <div class="info_box">
-                    <span>你像一阵风</span>
-                    <span>8评论</span>
-                    <span>10分钟前</span>
-                    <span class="close"
-                      ><van-icon name="cross"></van-icon
-                    ></span>
-                  </div>
-                </div>
-              </van-cell>
-            </van-list>
-          </van-pull-refresh>
-        </div>
+        <ArticleList :channelId="item.id" />
       </van-tab>
     </van-tabs>
     <!-- 右侧图标 -->
-    <span class="bar_btn">
+    <span class="bar_btn" @click="isShows = true">
       <van-icon name="wap-nav"></van-icon>
     </span>
+    <!-- 不要嵌套 -->
+    <!-- 通过双向绑定控制显示或隐藏 -->
+
+    <!--
+      .sync 同步修改数据
+      用法：
+      1. 传入变量 => :属性名.sync="变量"(简化写法)
+      2. 修改变量 =>  this.$emit('update:属性名',data)
+      注意：vue3不在支持
+     -->
+    <ChannelEdit
+      v-model="isShows"
+      :myChannel="Channel"
+      :activeIndex.sync="activeIndex"
+    />
+    <!-- <ChannelEdit
+      v-model="isShows"
+      :myChannel="Channel"
+      :activeIndex="activeIndex"
+      @enter-channel="activeIndex = $event"
+    /> -->
   </div>
 </template>
 <script>
 // import request from '@/utils/request'
+// import { getChannelApi } from '@/api/channel'
+import { getUserChannelApi } from '../../api/channel'
+import ArticleList from './components/articleList.vue'
+import ChannelEdit from './components/channel_edit.vue'
 // 频道复用率低不用全局共享存储到vuex 按需
-import { getChannelApi } from '../../api/home'
 export default {
   name: 'home-index',
+  // 如果缓存了就会执行
+  // 默认会执行一次
+  // 被缓存后，离开再次进入
+  // activated () {
+  //   console.log('被缓存了，再次进入')
+  // },
+  // deactivated () {
+  //   console.log('离开缓存的组件')
+  // },
+
   // methods: {
   //   setToken () {
   //     this.$store.commit('setToken', { token: 23, refresh: 45 })
@@ -100,66 +81,39 @@ export default {
   //     console.log(res)
   //   })
   // }
+  components: {
+    ArticleList,
+    ChannelEdit
+  },
   data () {
     return {
-      // 数据列表
-      list: [],
-
-      // v-model的高级用法,列表的加载状态   =>true表示显示 false不显示 转圈或菊花
-      loading: false,
-
-      // 是否已加载完成，加载完成后不再触发load事件 加载完成ture
-      finished: false,
-      // 下拉刷新
-      refreshing: false,
-      Channel: []
+      // 当前用户（我的频道）数据
+      Channel: [],
+      // 控制频道编辑弹出层显示隐藏的
+      isShowModal: false,
+      isShows: false,
+      // 当前选中页签的索引值
+      activeIndex: 0
     }
   },
-  created () { this.getChannelApi() },
-  methods: {
+  created () {
     // 频道
-    async getChannelApi () {
-      const { data } = await getChannelApi()
-      console.log(data)
-      this.Channel = data.channels
-    },
+    this.getChannel()
+    // console.log('创建了父组件')
+    // 测试refresh_token
+    // request.get('user/profile').then(res => {
+    //   console.log(res)
+    // })
+  },
+  methods: {
     //   @load="onLoad"第一次默认执行一次，如果数据不够一屏还会在加载一次（防止断带）知道填满一屏
     // 第一次默认执行，加载第一页数据加载onload事件取决于是否能填充一屏，需要两次加载才为一屏
     // 用户下拉页面，滚动到底部，会在加载数据(多次触发)
     // load滚动条与底部距离小于 offset 时触发
-    onLoad () {
-      // 异步更新数据
-      // setTimeout 仅做示例，真实场景中一般为 ajax 请求
-      // 在onload事件中默认是开启加载状态loading
-      setTimeout(() => {
-        // 下拉刷新
-        if (this.refreshing) {
-          this.list = []
-          this.refreshing = false
-        }
-        // 每次加载的条数
-        for (let i = 0; i < 10; i++) {
-          this.list.push(this.list.length + 1)
-        }
-
-        // 加载状态结束
-        this.loading = false
-
-        // 数据全部加载完成=》判断数据是否加载完成 完成后让finished为true 不再加载数据
-        if (this.list.length >= 20) {
-          this.finished = true
-        }
-      }, 1000)
-    },
-    // 下拉刷新 向下拖拽列表手放开才会触发刷新
-    onRefresh () {
-      // 清空列表数据 统一处理列表的加载完成状态(重置状态，加载完了没加载完)
-      this.finished = false
-
-      // 重新加载数据
-      // 将 loading 设置为 true，表示处于加载状态
-      this.loading = true
-      this.onLoad()
+    async getChannel () {
+      const { data } = await getUserChannelApi()
+      console.log(data)
+      this.Channel = data.channels
     }
 
   }
@@ -167,11 +121,12 @@ export default {
 </script>
 
 <style scoped lang='less'>
+// 覆盖有赞页签组件的默认样式
 .van-tabs {
   height: 100%;
   display: flex;
   flex-direction: column;
-  // 自定义tab样式/deep/覆盖子组件的样式
+  // 自定义tab样式=》/deep/覆盖子组件的样式
   /deep/ .van-tabs__wrap {
     height: 36px;
     padding-right: 36px;
@@ -206,45 +161,5 @@ export default {
   text-align: center;
   line-height: 40px;
   box-shadow: -6px -6px 8px #ddd;
-}
-.article_item {
-  h3 {
-    font-weight: normal;
-    line-height: 2;
-  }
-  .img_box {
-    display: flex;
-    justify-content: space-between;
-    .w33 {
-      width: 33%;
-      height: 90px;
-    }
-    .w100 {
-      width: 100%;
-      height: 180px;
-    }
-  }
-  .info_box {
-    color: #999;
-    line-height: 2;
-    position: relative;
-    font-size: 12px;
-    span {
-      padding-right: 10px;
-      &.close {
-        border: 1px solid #ddd;
-        border-radius: 2px;
-        line-height: 15px;
-        height: 12px;
-        width: 16px;
-        text-align: center;
-        padding-right: 0;
-        font-size: 8px;
-        position: absolute;
-        right: 0;
-        top: 7px;
-      }
-    }
-  }
 }
 </style>

@@ -52,7 +52,11 @@ const routes = [
         path: '/',
         name: 'index',
         // 首页
-        component: Index
+        component: Index,
+        // 开启缓存
+        meta: {
+          isKeepAlive: true
+        }
       },
       {
         path: '/question',
@@ -108,7 +112,11 @@ const routes = [
     path: '/article/:id',
     name: 'article',
     // 文章详情
-    component: Article
+    component: Article,
+    // 开启缓存
+    meta: {
+      isKeepAlive: true
+    }
   },
   {
     path: '*',
@@ -138,12 +146,12 @@ router.beforeEach((to, from, next) => {
    * next()也可以跳页面 ==== router.push()
    * 把用户当前访问的没登录的页面to.path当做参数，带到登录页 没登录--去登录--登陆完---返回之前没登录访问的页面to.path
    * 新版路由有错误代码未错 ，在Vue.(VueRouter)注册VueRouter之前加代码
-   * redirectUrk是键的名字自定义
+   * redirectUrl是键的名字自定义
    * */
   const { user } = store.state
   // 只是判断是否有token值，没有判断token的有效期
   if (to.path.startsWith('/user') && !user.token) {
-    next(`/login?redirectUrk=${to.path}`)
+    next(`/login?redirectUrl=${to.path}`)
   } else {
     next()
   }

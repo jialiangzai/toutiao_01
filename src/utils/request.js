@@ -55,8 +55,8 @@ request.interceptors.response.use(function (response) {
   // js可以通过router.currentRouter.Path获取当前访问页面的地址
   // 暂时性死区
   const loginPath = `/login?redirectUrl=${router.currentRoute.path}`
+  // 处理401情况：是否需要更新token
   try {
-    // 处理401情况：是否需要更新token
     if (error.response && error.response.status === 401) {
       console.log('处理401情况：是否需要更新token')
       /**
@@ -95,6 +95,7 @@ request.interceptors.response.use(function (response) {
           token: data.token, // 存新的token
           refresh_token: user.refresh_token
         })
+      return request(error.config)
     }
     // 练习的后天不能同一时刻使用同一账号会把第一次的token过期从而refresh_token生成新的token所以是两次
     // 同一个时刻只能同一个人登录

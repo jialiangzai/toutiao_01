@@ -16,7 +16,14 @@
       <van-button type="warning">警告按钮</van-button>
       <van-button type="danger">危险按钮</van-button> -->
     <!-- </div> -->
-    <router-view />
+    <!-- <router-view /> -->
+    <!--  -->
+    <!-- 如果配置 isKeepAlive渲染缓存 -->
+    <keep-alive>
+    <router-view v-if="$route.meta.isKeepAlive"></router-view>
+    </keep-alive>
+    <!-- 没有配置isKeepAlive 渲染不会被缓存 -->
+     <router-view v-if="!$route.meta.isKeepAlive"></router-view>
     <!-- <VanChild /> -->
   </div>
 </template>

@@ -5,6 +5,8 @@ import * as auth from '../utils/auth.js'
 // console.log('* as 对象 获取模块的所有导出， ' , auth);
 // 按需导入
 import { login } from '../api/user'
+// 导入子模块
+import chat from './modules/chat.js'
 Vue.use(Vuex)
 
 export default new Vuex.Store({
@@ -38,5 +40,6 @@ export default new Vuex.Store({
     }
   },
   modules: {
+    chat
   }
 })

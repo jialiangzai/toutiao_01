@@ -7,9 +7,9 @@ const TT_TOKEN_137 = 'TT_TOKEN_137'
 export function setToken (token) {
   localStorage.setItem(TT_TOKEN_137, JSON.stringify(token))
 }
-// 获取token 要转换成对象
+// 获取token 要转换成对象 一定要返回return
 export function getToken () {
-  JSON.parse(localStorage.getItem(TT_TOKEN_137))
+  return JSON.parse(localStorage.getItem(TT_TOKEN_137))
 }
 // 删除
 export function delToken () {
