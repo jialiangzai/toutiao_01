@@ -15,7 +15,7 @@
           <p>动态</p>
         </van-col>
         <van-col span="8">
-          <p>{{ userInfo.total_count }}</p>
+          <p>{{ userInfo.follow_count }}</p>
           <p>关注</p>
         </van-col>
         <van-col span="8">
