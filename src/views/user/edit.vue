@@ -84,6 +84,7 @@
 <script>
 import dayjs from 'dayjs'
 import { getUserProfile0, updateUserPhoto, updateUserInfo } from '@/api/user'
+import { mapMutations } from 'vuex'
 export default {
   name: 'user-profile',
   data () {
@@ -109,6 +110,8 @@ export default {
     }
   },
   methods: {
+
+    ...mapMutations('chat', ['setPhoto']),
     // 保存图片---上传到数据库
     async save () {
       // this.$toast.success('保存成功')
@@ -147,6 +150,9 @@ export default {
       // 选择性别 gender 0 男  1 女
       this.user.gender = gender
       this.showGender = false
+    },
+    created () {
+      this.getInfo()
     },
     // 获取待编辑信息（登录人）
     async getInfo () {
